@@ -1,7 +1,7 @@
-from .hyperparams import register_hyperparams
+from .ga import crossover, mutate, tournament_selection
 from .hyperparams import get_hyperparam as get_hp
+from .hyperparams import register_hyperparams
 from .init import init_pop
-from .ga import tournament_selection, crossover, mutate
 
 
 class PPL:
@@ -37,9 +37,9 @@ class PPL:
         for _ in range(0, num_breeding_rounds):
             parent_a = tournament_selection(self._pop)
             parent_b = tournament_selection(self._pop)
-            (child_a, child_b) = crossover(parent_a, parent_b)
-            child_a = mutate(child_a)
-            child_b = mutate(child_b)
+            (child_a, child_b) = crossover(parent_a, parent_b, inference_strat)
+            mutate(child_a, encoding, env)
+            mutate(child_b, encoding, env)
             new_pop.append(child_a)
             new_pop.append(child_b)
         assert len(new_pop) == pop_size
