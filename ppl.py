@@ -1,3 +1,4 @@
+from .error import NoActionError
 from .ga import crossover, mutate, tournament_selection
 from .hyperparams import get_hyperparam as get_hp
 from .hyperparams import register_hyperparams
@@ -15,11 +16,13 @@ class PPL:
         self._pop = None
 
     def init(self):
-        self._pop = init_pop(self._env, self._encoding, self._inference_strat)
-        self._eval_pop_fitness()
+        self._pop = init_pop(self._encoding, self._env.action_space,
+                             self._inference_strat)
+        self._eval_pop_fitness(self._pop)
         return (self._gen_counter, self._pop)
 
     def run_gen(self):
+        self._gen_counter += 1
         new_pop = []
 
         # elitism
@@ -37,18 +40,22 @@ class PPL:
         for _ in range(0, num_breeding_rounds):
             parent_a = tournament_selection(self._pop)
             parent_b = tournament_selection(self._pop)
-            (child_a, child_b) = crossover(parent_a, parent_b, inference_strat)
-            mutate(child_a, encoding, env)
-            mutate(child_b, encoding, env)
+            (child_a, child_b) = crossover(parent_a, parent_b,
+                                           self._inference_strat)
+            mutate(child_a, self._encoding, self._env.action_space)
+            mutate(child_b, self._encoding, self._env.action_space)
             new_pop.append(child_a)
             new_pop.append(child_b)
         assert len(new_pop) == pop_size
 
         # eval fitness
         self._pop = new_pop
-        self._eval_pop_fitness()
+        self._eval_pop_fitness(self._pop)
         return (self._gen_counter, self._pop)
 
-    def _eval_pop_fitness(self):
-        for indiv in self._pop:
-            indiv.fitness = self._env.assess_perf(indiv)
+    def _eval_pop_fitness(self, pop):
+        for indiv in pop:
+            try:
+                indiv.fitness = self._env.assess_perf(indiv)
+            except NoActionError:
+                indiv.fitness = self._env.perf_lower_bound

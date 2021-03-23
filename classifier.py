@@ -21,3 +21,6 @@ class Classifier:
 
     def does_match(self, obs):
         return self._condition.does_match(obs)
+
+    def calc_generality(self, obs_space):
+        return self._condition.calc_generality(obs_space)
