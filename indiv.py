@@ -22,7 +22,7 @@ class Indiv:
     def fitness(self, val):
         self._fitness = val
 
-    def choose_action(self, obs):
+    def select_action(self, obs):
         """Performs inference on obs using classifiers to predict an action;
         i.e. making Indiv act as a policy."""
         return self._inference_strat(self._clfrs, obs)

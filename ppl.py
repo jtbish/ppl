@@ -1,3 +1,6 @@
+import numpy as np
+from rlenvs.environment import assess_perf
+
 from .error import NoActionError
 from .ga import crossover, mutate, tournament_selection
 from .hyperparams import get_hyperparam as get_hp
@@ -56,6 +59,11 @@ class PPL:
     def _eval_pop_fitness(self, pop):
         for indiv in pop:
             try:
-                indiv.fitness = self._env.assess_perf(indiv)
+                indiv.fitness = assess_perf(
+                    self._env,
+                    indiv,
+                    num_rollouts=get_hp("num_rollouts"),
+                    gamma=get_hp("gamma"),
+                    returns_agg_func=np.mean)
             except NoActionError:
                 indiv.fitness = self._env.perf_lower_bound
