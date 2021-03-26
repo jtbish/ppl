@@ -1,3 +1,6 @@
+import os
+from multiprocessing import Pool
+
 import numpy as np
 from rlenvs.environment import assess_perf
 
@@ -6,6 +9,9 @@ from .ga import crossover, mutate, tournament_selection
 from .hyperparams import get_hyperparam as get_hp
 from .hyperparams import register_hyperparams
 from .init import init_pop
+from .rng import seed_rng
+
+_NUM_CPUS = int(os.environ['SLURM_JOB_CPUS_PER_NODE'])
 
 
 class PPL:
@@ -14,18 +20,17 @@ class PPL:
         self._encoding = encoding
         self._inference_strat = inference_strat
         register_hyperparams(hyperparams_dict)
+        seed_rng(get_hp("seed"))
 
-        self._gen_counter = 0
         self._pop = None
 
     def init(self):
         self._pop = init_pop(self._encoding, self._env.action_space,
                              self._inference_strat)
         self._eval_pop_fitness(self._pop)
-        return (self._gen_counter, self._pop)
+        return self._pop
 
     def run_gen(self):
-        self._gen_counter += 1
         new_pop = []
 
         # elitism
@@ -54,16 +59,25 @@ class PPL:
         # eval fitness
         self._pop = new_pop
         self._eval_pop_fitness(self._pop)
-        return (self._gen_counter, self._pop)
+        return self._pop
 
     def _eval_pop_fitness(self, pop):
-        for indiv in pop:
-            try:
-                indiv.fitness = assess_perf(
-                    self._env,
-                    indiv,
-                    num_rollouts=get_hp("num_rollouts"),
-                    gamma=get_hp("gamma"),
-                    returns_agg_func=np.mean)
-            except NoActionError:
-                indiv.fitness = self._env.perf_lower_bound
+        # process parallelism for fitness eval
+        num_rollouts = get_hp("num_rollouts")
+        gamma = get_hp("gamma")
+        with Pool(_NUM_CPUS) as pool:
+            fitnesses = pool.starmap(self._eval_indiv_fitness,
+                                     [(indiv, num_rollouts, gamma)
+                                      for indiv in pop])
+        for (indiv, fitness) in zip(pop, fitnesses):
+            indiv.fitness = fitness
+
+    def _eval_indiv_fitness(self, indiv, num_rollouts, gamma):
+        try:
+            return assess_perf(self._env,
+                               indiv,
+                               num_rollouts,
+                               gamma,
+                               returns_agg_func=np.mean)
+        except NoActionError:
+            return self._env.perf_lower_bound

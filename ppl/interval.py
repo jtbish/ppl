@@ -14,3 +14,6 @@ class Interval:
 
     def contains_val(self, val):
         return self._lower <= val <= self._upper
+
+    def __str__(self):
+        return f"[{self._lower}, {self._upper}]"

@@ -1,5 +1,3 @@
-# mask access to registry behind accessor functions to ensure callers can't
-# mutate it by accident - it is "immutable"
 _hyperparams_registry = {}
 
 
