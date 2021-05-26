@@ -1,6 +1,2 @@
-class NoActionError(Exception):
-    pass
-
-
-class UnsetFitnessError(Exception):
+class UnsetPropertyError(Exception):
     pass

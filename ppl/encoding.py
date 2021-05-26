@@ -7,7 +7,6 @@ from .hyperparams import get_hyperparam as get_hp
 from .interval import Interval
 from .rng import get_rng
 
-_GENERALITY_LB_EXCL = 0.0
 _GENERALITY_UB_INCL = 1.0
 
 
@@ -86,6 +85,8 @@ class UnorderedBoundEncodingABC(EncodingABC, metaclass=abc.ABCMeta):
 
 
 class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
+    _GENERALITY_LB_EXCL = 0
+
     def __init__(self, obs_space):
         assert isinstance(obs_space, IntegerObsSpace)
         super().__init__(obs_space)
@@ -100,7 +101,7 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
                      for interval in cond_intervals])
         denom = sum([(dim.upper - dim.lower + 1) for dim in self._obs_space])
         generality = numer / denom
-        assert _GENERALITY_LB_EXCL < generality <= _GENERALITY_UB_INCL
+        assert self._GENERALITY_LB_EXCL < generality <= _GENERALITY_UB_INCL
         return generality
 
     def _gen_mutation_noise(self, dim=None):
@@ -109,6 +110,8 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
 
 
 class RealUnorderedBoundEncoding(UnorderedBoundEncodingABC):
+    _GENERALITY_LB_INCL = 0
+
     def __init__(self, obs_space):
         assert isinstance(obs_space, RealObsSpace)
         super().__init__(obs_space)
@@ -121,7 +124,7 @@ class RealUnorderedBoundEncoding(UnorderedBoundEncodingABC):
                      for interval in cond_intervals])
         denom = sum([(dim.upper - dim.lower) for dim in self._obs_space])
         generality = numer / denom
-        assert _GENERALITY_LB_EXCL < generality <= _GENERALITY_UB_INCL
+        assert self._GENERALITY_LB_INCL <= generality <= _GENERALITY_UB_INCL
         return generality
 
     def _gen_mutation_noise(self, dim):
@@ -130,5 +133,5 @@ class RealUnorderedBoundEncoding(UnorderedBoundEncodingABC):
         dim_span = (dim.upper - dim.lower)
         m_nought = get_hp("m_nought")
         assert 0.0 < m_nought <= 1.0
-        mut_high = m_nought*dim_span
+        mut_high = m_nought * dim_span
         return get_rng().uniform(low=0, high=mut_high)

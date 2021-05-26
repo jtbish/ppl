@@ -1,7 +1,7 @@
 import abc
 from collections import OrderedDict
 
-from .error import NoActionError
+_NULL_ACTION = -1
 
 
 class InferenceStrategyABC(metaclass=abc.ABCMeta):
@@ -18,7 +18,7 @@ class DecisionListInference(InferenceStrategyABC):
         for clfr in clfrs:
             if clfr.does_match(obs):
                 return clfr.action
-        raise NoActionError
+        return _NULL_ACTION
 
 
 class SpecificityInference(InferenceStrategyABC):
@@ -37,4 +37,4 @@ class SpecificityInference(InferenceStrategyABC):
             most_specific_action = min(generality_map, key=generality_map.get)
             return most_specific_action
         else:
-            raise NoActionError
+            return _NULL_ACTION

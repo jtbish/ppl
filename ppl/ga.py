@@ -8,7 +8,8 @@ from .rng import get_rng
 
 def tournament_selection(pop):
     def _select_random(pop):
-        return get_rng().choice(pop)
+        idx = get_rng().randint(0, len(pop))
+        return pop[idx]
 
     best = _select_random(pop)
     for _ in range(2, get_hp("tourn_size") + 1):
@@ -70,8 +71,8 @@ def _select_cut_idxs(indiv):
     # for indiv of len n, there are n+1 cut idxs (beginning at 0: LHS of first
     # elem, ending at n: RHS of last elem)
     n = len(indiv)
-    first = get_rng().choice(range(0, n + 1))
-    second = get_rng().choice(range(0, n + 1))
+    first = get_rng().randint(0, n+1)
+    second = get_rng().randint(0, n+1)
     cut_start_idx = min(first, second)
     cut_end_idx = max(first, second)
     cut_size = (cut_end_idx - cut_start_idx)

@@ -1,10 +1,8 @@
 import os
 from multiprocessing import Pool
 
-import numpy as np
 from rlenvs.environment import assess_perf
 
-from .error import NoActionError
 from .ga import crossover, mutate, tournament_selection
 from .hyperparams import get_hyperparam as get_hp
 from .hyperparams import register_hyperparams
@@ -23,6 +21,10 @@ class PPL:
         seed_rng(get_hp("seed"))
 
         self._pop = None
+
+    @property
+    def pop(self):
+        return self._pop
 
     def init(self):
         self._pop = init_pop(self._encoding, self._env.action_space,
@@ -59,25 +61,27 @@ class PPL:
         # eval fitness
         self._pop = new_pop
         self._eval_pop_fitness(self._pop)
-        return self._pop
 
     def _eval_pop_fitness(self, pop):
         # process parallelism for fitness eval
         num_rollouts = get_hp("num_rollouts")
         gamma = get_hp("gamma")
         with Pool(_NUM_CPUS) as pool:
-            fitnesses = pool.starmap(self._eval_indiv_fitness,
-                                     [(indiv, num_rollouts, gamma)
-                                      for indiv in pop])
-        for (indiv, fitness) in zip(pop, fitnesses):
-            indiv.fitness = fitness
+            results = pool.starmap(self._eval_indiv_fitness,
+                                   [(indiv, num_rollouts, gamma)
+                                    for indiv in pop])
+        for (indiv, (expected_return, time_steps_used)) in zip(pop, results):
+            indiv.fitness = expected_return
+            indiv.time_steps_used = time_steps_used
 
     def _eval_indiv_fitness(self, indiv, num_rollouts, gamma):
-        try:
-            return assess_perf(self._env,
-                               indiv,
-                               num_rollouts,
-                               gamma,
-                               returns_agg_func=np.mean)
-        except NoActionError:
-            return self._env.perf_lower_bound
+        (expected_return,
+         time_steps_used) = assess_perf(self._env,
+                                        indiv,
+                                        num_rollouts,
+                                        gamma,
+                                        return_time_steps_used=True)
+        if expected_return is not None:
+            return (expected_return, time_steps_used)
+        else:
+            return (self._env.perf_lower_bound, time_steps_used)
