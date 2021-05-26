@@ -20,6 +20,13 @@ def tournament_selection(pop):
 
 
 def crossover(parent_a, parent_b, inference_strat):
+    if get_rng().random() < get_hp("p_cross"):
+        return _crossover(parent_a, parent_b, inference_strat)
+    else:
+        return (parent_a, parent_b)
+
+
+def _crossover(parent_a, parent_b, inference_strat):
     indiv_size_min = get_hp("indiv_size_min")
     indiv_size_max = get_hp("indiv_size_max")
 

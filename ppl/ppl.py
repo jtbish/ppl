@@ -19,7 +19,6 @@ class PPL:
         self._inference_strat = inference_strat
         register_hyperparams(hyperparams_dict)
         seed_rng(get_hp("seed"))
-
         self._pop = None
 
     @property
@@ -30,7 +29,6 @@ class PPL:
         self._pop = init_pop(self._encoding, self._env.action_space,
                              self._inference_strat)
         self._eval_pop_fitness(self._pop)
-        return self._pop
 
     def run_gen(self):
         new_pop = []
