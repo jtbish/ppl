@@ -1,5 +1,7 @@
 import os
+import logging
 from multiprocessing import Pool
+import copy
 
 from rlenvs.environment import assess_perf
 
@@ -29,6 +31,7 @@ class PPL:
         self._pop = init_pop(self._encoding, self._env.action_space,
                              self._inference_strat)
         self._eval_pop_fitness(self._pop)
+        return self._pop
 
     def run_gen(self):
         new_pop = []
@@ -40,8 +43,11 @@ class PPL:
         pop_size = get_hp("pop_size")
         num_elites = get_hp("num_elites")
         assert (pop_size - num_elites) % 2 == 0
-        elites = fitness_desc_sorted_pop[0:num_elites]
-        new_pop.extend(elites)
+        # make deepcopies of elites because they could possibly be selected as
+        # parents later and mutated, don't want to share refs for that
+        for idx in range(0, num_elites):
+            elite = copy.deepcopy(fitness_desc_sorted_pop[idx])
+            new_pop.append(elite)
 
         # breeding
         num_breeding_rounds = (pop_size - num_elites) // 2
@@ -59,6 +65,7 @@ class PPL:
         # eval fitness
         self._pop = new_pop
         self._eval_pop_fitness(self._pop)
+        return self._pop
 
     def _eval_pop_fitness(self, pop):
         # process parallelism for fitness eval
@@ -68,18 +75,9 @@ class PPL:
             results = pool.starmap(self._eval_indiv_fitness,
                                    [(indiv, num_rollouts, gamma)
                                     for indiv in pop])
-        for (indiv, (expected_return, time_steps_used)) in zip(pop, results):
-            indiv.fitness = expected_return
-            indiv.time_steps_used = time_steps_used
+        for (indiv, result) in zip(pop, results):
+            indiv.fitness = result.perf
+            indiv.time_steps_used = result.time_steps_used
 
     def _eval_indiv_fitness(self, indiv, num_rollouts, gamma):
-        (expected_return,
-         time_steps_used) = assess_perf(self._env,
-                                        indiv,
-                                        num_rollouts,
-                                        gamma,
-                                        return_time_steps_used=True)
-        if expected_return is not None:
-            return (expected_return, time_steps_used)
-        else:
-            return (self._env.perf_lower_bound, time_steps_used)
+        return assess_perf(self._env, indiv, num_rollouts, gamma)
