@@ -5,23 +5,25 @@ from .indiv import Indiv
 from .rng import get_rng
 
 
-def init_pop(encoding, action_space, inference_strat):
+def init_pop(encoding, selectable_actions, inference_strat):
     return [
-        _init_indiv(encoding, action_space, inference_strat)
+        _init_indiv(encoding, selectable_actions, inference_strat)
         for _ in range(get_hp("pop_size"))
     ]
 
 
-def _init_indiv(encoding, action_space, inference_strat):
+def _init_indiv(encoding, selectable_actions, inference_strat):
     num_clfrs = get_rng().randint(low=get_hp("indiv_size_min"),
                                   high=get_hp("indiv_size_max") + 1)
-    clfrs = [_init_clfr(encoding, action_space) for _ in range(num_clfrs)]
+    clfrs = [
+        _init_clfr(encoding, selectable_actions) for _ in range(num_clfrs)
+    ]
     return Indiv(clfrs, inference_strat)
 
 
-def _init_clfr(encoding, action_space):
+def _init_clfr(encoding, selectable_actions):
     condition = _init_clfr_condition(encoding)
-    action = _init_clfr_action(action_space)
+    action = _init_clfr_action(selectable_actions)
     return Classifier(condition, action)
 
 
@@ -30,5 +32,5 @@ def _init_clfr_condition(encoding):
                      encoding=encoding)
 
 
-def _init_clfr_action(action_space):
-    return get_rng().choice(action_space)
+def _init_clfr_action(selectable_actions):
+    return get_rng().choice(selectable_actions)

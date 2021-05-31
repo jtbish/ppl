@@ -1,13 +1,14 @@
-import os
-import logging
-from multiprocessing import Pool
 import copy
+import logging
+import os
+from multiprocessing import Pool
 
 from rlenvs.environment import assess_perf
 
 from .ga import crossover, mutate, tournament_selection
 from .hyperparams import get_hyperparam as get_hp
 from .hyperparams import register_hyperparams
+from .inference import NULL_ACTION
 from .init import init_pop
 from .rng import seed_rng
 
@@ -19,6 +20,9 @@ class PPL:
         self._env = env
         self._encoding = encoding
         self._inference_strat = inference_strat
+        self._selectable_actions = \
+            self._find_selectable_actions(self._env.action_space,
+                                          self._inference_strat.default_action)
         register_hyperparams(hyperparams_dict)
         seed_rng(get_hp("seed"))
         self._pop = None
@@ -27,8 +31,15 @@ class PPL:
     def pop(self):
         return self._pop
 
+    def _find_selectable_actions(self, action_space, default_action):
+        """Selectable actions are everything but default."""
+        if default_action != NULL_ACTION:
+            return tuple(set(action_space) - {default_action})
+        else:
+            return action_space
+
     def init(self):
-        self._pop = init_pop(self._encoding, self._env.action_space,
+        self._pop = init_pop(self._encoding, self._selectable_actions,
                              self._inference_strat)
         self._eval_pop_fitness(self._pop)
         return self._pop
@@ -56,8 +67,8 @@ class PPL:
             parent_b = tournament_selection(self._pop)
             (child_a, child_b) = crossover(parent_a, parent_b,
                                            self._inference_strat)
-            mutate(child_a, self._encoding, self._env.action_space)
-            mutate(child_b, self._encoding, self._env.action_space)
+            mutate(child_a, self._encoding, self._selectable_actions)
+            mutate(child_b, self._encoding, self._selectable_actions)
             new_pop.append(child_a)
             new_pop.append(child_b)
         assert len(new_pop) == pop_size

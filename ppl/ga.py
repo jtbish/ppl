@@ -78,29 +78,29 @@ def _select_cut_idxs(indiv):
     # for indiv of len n, there are n+1 cut idxs (beginning at 0: LHS of first
     # elem, ending at n: RHS of last elem)
     n = len(indiv)
-    first = get_rng().randint(0, n+1)
-    second = get_rng().randint(0, n+1)
+    first = get_rng().randint(0, n + 1)
+    second = get_rng().randint(0, n + 1)
     cut_start_idx = min(first, second)
     cut_end_idx = max(first, second)
     cut_size = (cut_end_idx - cut_start_idx)
     return (cut_start_idx, cut_end_idx, cut_size)
 
 
-def mutate(indiv, encoding, action_space):
+def mutate(indiv, encoding, selectable_actions):
     """Mutates condition and action of clfrs contained within indiv by
     resetting them in Classifier object."""
     for clfr in indiv.classifiers:
         cond_alleles = clfr.condition.alleles
         mut_cond_alleles = encoding.mutate_condition_alleles(cond_alleles)
         mut_cond = Condition(mut_cond_alleles, encoding)
-        mut_action = _mutate_action(clfr.action, action_space)
+        mut_action = _mutate_action(clfr.action, selectable_actions)
         clfr.condition = mut_cond
         clfr.action = mut_action
 
 
-def _mutate_action(action, action_space):
+def _mutate_action(action, selectable_actions):
     if get_rng().random() < get_hp("p_mut"):
-        other_actions = list(set(action_space) - {action})
+        other_actions = list(set(selectable_actions) - {action})
         return get_rng().choice(other_actions)
     else:
         return action
