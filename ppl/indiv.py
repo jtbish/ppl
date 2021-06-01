@@ -7,6 +7,7 @@ class Indiv:
         self._inference_strat = inference_strat
         self._fitness = None
         self._time_steps_used = None
+        self._is_elite = False
 
     @property
     def classifiers(self):
@@ -34,6 +35,15 @@ class Indiv:
     @time_steps_used.setter
     def time_steps_used(self, val):
         self._time_steps_used = val
+
+    @property
+    def is_elite(self):
+        return self._is_elite
+
+    @is_elite.setter
+    def is_elite(self, bool_):
+        assert isinstance(bool_, bool)
+        self._is_elite = bool_
 
     def select_action(self, obs):
         """Performs inference on obs using classifiers to predict an action;
