@@ -35,7 +35,7 @@ class DecisionListInference(InferenceStrategyABC):
 
 
 class SpecificityInference(InferenceStrategyABC):
-    def _infer_action_(self, clfrs, obs):
+    def _infer_action(self, clfrs, obs):
         match_set = [clfr for clfr in clfrs if clfr.does_match(obs)]
         if len(match_set) > 0:
             generality_map = OrderedDict()
