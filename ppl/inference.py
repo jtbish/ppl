@@ -45,7 +45,7 @@ class SpecificityInference(InferenceStrategyABC):
                 ]
                 if len(action_set) > 0:
                     min_generality_as = min(
-                        [clfr.calc_generality() for clfr in action_set])
+                        [clfr.generality for clfr in action_set])
                     generality_map[action] = min_generality_as
             most_specific_action = min(generality_map, key=generality_map.get)
             return most_specific_action

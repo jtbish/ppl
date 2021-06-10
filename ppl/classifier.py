@@ -12,6 +12,10 @@ class Classifier:
         self._condition = val
 
     @property
+    def generality(self):
+        return self._condition.generality
+
+    @property
     def action(self):
         return self._action
 
@@ -21,9 +25,6 @@ class Classifier:
 
     def does_match(self, obs):
         return self._condition.does_match(obs)
-
-    def calc_generality(self):
-        return self._condition.calc_generality()
 
     def __str__(self):
         return f"{self._condition} -> {self._action}"
