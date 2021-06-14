@@ -21,8 +21,5 @@ class Condition:
                 return False
         return True
 
-    def calc_generality(self):
-        return self._encoding.calc_condition_generality(self._phenotype)
-
     def __str__(self):
         return " && ".join([str(interval) for interval in self._phenotype])
