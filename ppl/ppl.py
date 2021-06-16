@@ -31,6 +31,10 @@ class PPL:
     def pop(self):
         return self._pop
 
+    @property
+    def selectable_actions(self):
+        return self._selectable_actions
+
     def _find_selectable_actions(self, action_space, default_action):
         """Selectable actions are everything but default."""
         if default_action != NULL_ACTION:
