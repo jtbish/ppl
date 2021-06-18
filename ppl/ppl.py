@@ -66,7 +66,7 @@ class PPL:
         # parents later and modified, don't want to share refs for that
         elites = []
         for idx in range(0, num_elites):
-            elite = copy.deepcopy(fitness_desc_sorted_pop[idx])
+            elite = fitness_desc_sorted_pop[idx]
             elite.is_elite = True
             elites.append(elite)
 
@@ -74,8 +74,9 @@ class PPL:
         num_breeding_rounds = (pop_size - num_elites) // 2
         offspring = []
         for _ in range(0, num_breeding_rounds):
-            parent_a = tournament_selection(self._pop)
-            parent_b = tournament_selection(self._pop)
+            # take parents as copies
+            parent_a = copy.deepcopy(tournament_selection(self._pop))
+            parent_b = copy.deepcopy(tournament_selection(self._pop))
             (child_a, child_b) = crossover(parent_a, parent_b,
                                            self._inference_strat)
             mutate(child_a, self._encoding, self._selectable_actions)
