@@ -64,7 +64,7 @@ class PPL:
         assert (pop_size - num_elites) % 2 == 0
         # make deepcopies of elites because they could possibly be selected as
         # parents later and modified, don't want to share refs for that - or
-        # share the is_elite flag
+        # to share the is_elite flag
         elites = []
         for idx in range(0, num_elites):
             elite = copy.deepcopy(fitness_desc_sorted_pop[idx])
@@ -74,7 +74,7 @@ class PPL:
         # breed offspring
         num_breeding_rounds = (pop_size - num_elites) // 2
         offspring = []
-        for _ in range(0, num_breeding_rounds):
+        for _ in range(num_breeding_rounds):
             parent_a = copy.deepcopy(tournament_selection(self._pop))
             parent_b = copy.deepcopy(tournament_selection(self._pop))
             (child_a, child_b) = crossover(parent_a, parent_b,

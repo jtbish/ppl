@@ -1,5 +1,3 @@
-import copy
-
 from .condition import Condition
 from .hyperparams import get_hyperparam as get_hp
 from .indiv import Indiv
@@ -47,9 +45,8 @@ def _crossover(parent_a, parent_b, inference_strat):
             and (indiv_size_min <= b_new_size <= indiv_size_max)
 
     # use the cuts to do the crossover
-    # operate on copies of parent clfrs so refs are not shared
-    parent_a_clfrs = copy.deepcopy(parent_a.classifiers)
-    parent_b_clfrs = copy.deepcopy(parent_b.classifiers)
+    parent_a_clfrs = parent_a.classifiers
+    parent_b_clfrs = parent_b.classifiers
 
     a_cut = parent_a_clfrs[a_cut_start_idx:a_cut_end_idx]
     assert len(a_cut) == a_cut_size
