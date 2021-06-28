@@ -47,7 +47,6 @@ def _crossover(parent_a, parent_b, inference_strat):
     # use the cuts to do the crossover
     parent_a_clfrs = parent_a.classifiers
     parent_b_clfrs = parent_b.classifiers
-
     a_cut = parent_a_clfrs[a_cut_start_idx:a_cut_end_idx]
     assert len(a_cut) == a_cut_size
     b_cut = parent_b_clfrs[b_cut_start_idx:b_cut_end_idx]
