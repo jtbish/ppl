@@ -13,8 +13,7 @@ def init_pop(encoding, selectable_actions, inference_strat):
 
 
 def _init_indiv(encoding, selectable_actions, inference_strat):
-    num_clfrs = get_rng().randint(low=get_hp("indiv_size_min"),
-                                  high=get_hp("indiv_size_max") + 1)
+    num_clfrs = get_hp("indiv_size")
     clfrs = [
         _init_clfr(encoding, selectable_actions) for _ in range(num_clfrs)
     ]
