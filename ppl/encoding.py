@@ -1,4 +1,5 @@
 import abc
+import logging
 
 import numpy as np
 from rlenvs.obs_space import IntegerObsSpace, RealObsSpace
@@ -91,6 +92,14 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
     def __init__(self, obs_space):
         assert isinstance(obs_space, IntegerObsSpace)
         super().__init__(obs_space)
+        # set p for geom dist mutation according to satisfying target prob.
+        # mass on CDF after k trials, k = max dim span
+        target_mass = 0.99  # let 1% of mass tail off to +inf
+        max_dim_span = max([(dim.upper - dim.lower + 1) for dim in obs_space])
+        k = max_dim_span
+        # rearranged CDF eqn. to solve for p
+        self._mut_geom_p = 1 - (1 - target_mass)**(1/k)
+        logging.info(f"mut_geom_p = {self._mut_geom_p}")
 
     def _init_random_allele_for_dim(self, dim):
         return get_rng().randint(low=dim.lower, high=(dim.upper + 1))
@@ -105,8 +114,9 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
         return generality
 
     def _gen_mutation_noise(self, dim=None):
-        # integer ~ [1, m_0]
-        return get_rng().randint(low=1, high=(get_hp("m_nought") + 1))
+        # integer ~ Geo(p): supported on integers >= 1 i.e.
+        # "shifted" geom. dist.
+        return get_rng().geometric(p=self._mut_geom_p, size=1)
 
 
 class RealUnorderedBoundEncoding(UnorderedBoundEncodingABC):
