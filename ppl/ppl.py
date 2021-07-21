@@ -75,9 +75,10 @@ class PPL:
         num_breeding_rounds = (pop_size - num_elites) // 2
         offspring = []
         for _ in range(num_breeding_rounds):
-            parent_a = copy.deepcopy(tournament_selection(self._pop))
-            parent_b = copy.deepcopy(tournament_selection(self._pop))
-            (child_a, child_b) = crossover(parent_a, parent_b,
+            parent_a = tournament_selection(self._pop)
+            parent_b = tournament_selection(self._pop)
+            (child_a, child_b) = crossover(copy.deepcopy(parent_a),
+                                           copy.deepcopy(parent_b),
                                            self._inference_strat)
             mutate(child_a, self._encoding, self._selectable_actions)
             mutate(child_b, self._encoding, self._selectable_actions)

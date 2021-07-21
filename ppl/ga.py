@@ -2,7 +2,6 @@ from .condition import Condition
 from .hyperparams import get_hyperparam as get_hp
 from .indiv import Indiv
 from .rng import get_rng
-import copy
 
 
 def tournament_selection(pop):
@@ -20,35 +19,58 @@ def tournament_selection(pop):
 
 def crossover(parent_a, parent_b, inference_strat):
     if get_rng().random() < get_hp("p_cross"):
-        return _crossover(parent_a, parent_b, inference_strat)
+        return _uniform_crossover(parent_a, parent_b, inference_strat)
     else:
         return (parent_a, parent_b)
 
 
-def _crossover(parent_a, parent_b, inference_strat):
+def _two_point_crossover(parent_a, parent_b, inference_strat):
     """Two point crossover with cut points between classifiers."""
     n = get_hp("indiv_size")
     parent_a_clfrs = parent_a.classifiers
     parent_b_clfrs = parent_b.classifiers
     assert len(parent_a_clfrs) == n
     assert len(parent_b_clfrs) == n
-    first = get_rng().randint(0, n+1)
-    second = get_rng().randint(0, n+1)
+    first = get_rng().randint(0, n + 1)
+    second = get_rng().randint(0, n + 1)
     cut_start_idx = min(first, second)
     cut_end_idx = max(first, second)
 
-    def _swap(seq_a, seq_b, idx):
-        seq_a[idx], seq_b[idx] = seq_b[idx], seq_a[idx]
-
-    child_a_clfrs = copy.deepcopy(parent_a_clfrs)
-    child_b_clfrs = copy.deepcopy(parent_b_clfrs)
+    child_a_clfrs = parent_a_clfrs
+    child_b_clfrs = parent_b_clfrs
     for idx in range(cut_start_idx, cut_end_idx):
         _swap(child_a_clfrs, child_b_clfrs, idx)
+
     assert len(child_a_clfrs) == n
     assert len(child_b_clfrs) == n
     child_a = Indiv(child_a_clfrs, inference_strat)
     child_b = Indiv(child_b_clfrs, inference_strat)
     return (child_a, child_b)
+
+
+def _uniform_crossover(parent_a, parent_b, inference_strat):
+    """Uniform crossover with cut points between classifiers."""
+    n = get_hp("indiv_size")
+    parent_a_clfrs = parent_a.classifiers
+    parent_b_clfrs = parent_b.classifiers
+    assert len(parent_a_clfrs) == n
+    assert len(parent_b_clfrs) == n
+
+    child_a_clfrs = parent_a_clfrs
+    child_b_clfrs = parent_b_clfrs
+    for idx in range(0, n):
+        if get_rng().random() < get_hp("p_cross_swap"):
+            _swap(child_a_clfrs, child_b_clfrs, idx)
+
+    assert len(child_a_clfrs) == n
+    assert len(child_b_clfrs) == n
+    child_a = Indiv(child_a_clfrs, inference_strat)
+    child_b = Indiv(child_b_clfrs, inference_strat)
+    return (child_a, child_b)
+
+
+def _swap(seq_a, seq_b, idx):
+    seq_a[idx], seq_b[idx] = seq_b[idx], seq_a[idx]
 
 
 def mutate(indiv, encoding, selectable_actions):
