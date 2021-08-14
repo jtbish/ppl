@@ -79,7 +79,8 @@ class PPL:
             parent_b = tournament_selection(self._pop)
             (child_a, child_b) = crossover(copy.deepcopy(parent_a),
                                            copy.deepcopy(parent_b),
-                                           self._inference_strat)
+                                           self._inference_strat,
+                                           self._encoding)
             mutate(child_a, self._encoding, self._selectable_actions)
             mutate(child_b, self._encoding, self._selectable_actions)
             offspring.append(child_a)

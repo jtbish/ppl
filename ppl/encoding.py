@@ -15,6 +15,10 @@ class EncodingABC(metaclass=abc.ABCMeta):
     def __init__(self, obs_space):
         self._obs_space = obs_space
 
+    @property
+    def obs_space(self):
+        return self._obs_space
+
     @abc.abstractmethod
     def init_condition_alleles(self):
         raise NotImplementedError
