@@ -1,4 +1,4 @@
-class Classifier:
+class Rule:
     def __init__(self, condition, action):
         self._condition = condition
         self._action = action
@@ -10,10 +10,6 @@ class Classifier:
     @condition.setter
     def condition(self, val):
         self._condition = val
-
-    @property
-    def generality(self):
-        return self._condition.generality
 
     @property
     def action(self):

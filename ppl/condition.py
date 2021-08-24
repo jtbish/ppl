@@ -4,15 +4,12 @@ class Condition:
         self._encoding = encoding
         # pre-compute the phenotype
         self._phenotype = self._encoding.decode(self._alleles)
-#        self._generality = \
-#            self._encoding.calc_condition_generality(self._phenotype)
 
     @property
     def alleles(self):
         return self._alleles
 
-    @property
-    def generality(self):
+    def calc_generality(self):
         return self._encoding.calc_condition_generality(self._phenotype)
 
     def does_match(self, obs):
