@@ -80,8 +80,9 @@ class PPL:
                                    [(indiv, num_rollouts, gamma)
                                     for indiv in indivs])
         for (indiv, result) in zip(indivs, results):
-            indiv.fitness = result.perf
-            indiv.time_steps_used = result.time_steps_used
+#            indiv.fitness = result.perf
+#            indiv.time_steps_used = result.time_steps_used
+            indiv.perf_assessment_res = result
 
     def _eval_indiv_fitness(self, indiv, num_rollouts, gamma):
         return assess_perf(self._env, indiv, num_rollouts, gamma)

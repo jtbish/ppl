@@ -5,8 +5,9 @@ from .inference import infer_action
 class Indiv:
     def __init__(self, rules):
         self._rules = list(rules)
-        self._fitness = None
-        self._time_steps_used = None
+#        self._fitness = None
+#        self._time_steps_used = None
+        self._perf_assessment_res = None
         self._is_elite = False
 
     @property
@@ -14,27 +15,31 @@ class Indiv:
         return self._rules
 
     @property
-    def fitness(self):
-        if self._fitness is None:
+    def perf_assessment_res(self):
+        if self._perf_assessment_res is None:
             raise UnsetPropertyError
         else:
-            return self._fitness
+            return self._perf_assessment_res
 
-    @fitness.setter
-    def fitness(self, val):
-        self._fitness = val
+    @perf_assessment_res.setter
+    def perf_assessment_res(self, val):
+        self._perf_assessment_res = val
+
+    @property
+    def fitness(self):
+        if self._perf_assessment_res is None:
+            raise UnsetPropertyError
+        else:
+            # fitness == perf
+            return self._perf_assessment_res.perf
 
     @property
     def time_steps_used(self):
         """Time steps used on *most recent* fitness assessment."""
-        if self._time_steps_used is None:
+        if self._perf_assessment_res is None:
             raise UnsetPropertyError
         else:
-            return self._time_steps_used
-
-    @time_steps_used.setter
-    def time_steps_used(self, val):
-        self._time_steps_used = val
+            return self._perf_assessment_res.time_steps_used
 
     @property
     def is_elite(self):
