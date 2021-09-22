@@ -92,18 +92,12 @@ class UnorderedBoundEncodingABC(EncodingABC, metaclass=abc.ABCMeta):
 class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
     _GENERALITY_LB_EXCL = 0
     _INTERVAL_CLS = IntegerInterval
+    # 50% chance of mutating allele by +-1, 50% of mutating more
+    _MUT_GEOM_P = 0.5
 
     def __init__(self, obs_space):
         assert isinstance(obs_space, IntegerObsSpace)
         super().__init__(obs_space)
-        # set p for geom dist mutation according to satisfying target prob.
-        # mass on CDF after k trials, k = max dim span
-        target_mass = 0.99  # let 1% of mass tail off to +inf
-        max_dim_span = max([(dim.upper - dim.lower + 1) for dim in obs_space])
-        k = max_dim_span
-        # rearranged CDF eqn. to solve for p
-        self._mut_geom_p = 1 - (1 - target_mass)**(1/k)
-        logging.info(f"mut_geom_p = {self._mut_geom_p}")
 
     def _init_random_allele_for_dim(self, dim):
         return get_rng().randint(low=dim.lower, high=(dim.upper + 1))
@@ -120,7 +114,7 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
     def _gen_mutation_noise(self, dim=None):
         # integer ~ Geo(p): supported on integers >= 1 i.e.
         # "shifted" geom. dist.
-        return get_rng().geometric(p=self._mut_geom_p, size=1)
+        return get_rng().geometric(p=self._MUT_GEOM_P, size=1)
 
 
 class RealUnorderedBoundEncoding(UnorderedBoundEncodingABC):
