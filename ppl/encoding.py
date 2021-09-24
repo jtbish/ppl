@@ -1,7 +1,6 @@
 import abc
 import logging
 
-import numpy as np
 from rlenvs.obs_space import IntegerObsSpace, RealObsSpace
 
 from .hyperparams import get_hyperparam as get_hp
@@ -77,7 +76,8 @@ class UnorderedBoundEncodingABC(EncodingABC, metaclass=abc.ABCMeta):
                     noise = self._gen_mutation_noise(dim)
                     sign = get_rng().choice([-1, 1])
                     mut_allele = allele + sign * noise
-                    mut_allele = np.clip(mut_allele, dim.lower, dim.upper)
+                    mut_allele = max(mut_allele, dim.lower)
+                    mut_allele = min(mut_allele, dim.upper)
                     mut_alleles.append(mut_allele)
                 else:
                     mut_alleles.append(allele)
@@ -100,7 +100,7 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
         super().__init__(obs_space)
 
     def _init_random_allele_for_dim(self, dim):
-        return get_rng().randint(low=dim.lower, high=(dim.upper + 1))
+        return get_rng().randint(low=dim.lower, high=(dim.upper + 2))
 
     def calc_condition_generality(self, cond_intervals):
         # condition generality calc as in
@@ -114,7 +114,7 @@ class IntegerUnorderedBoundEncoding(UnorderedBoundEncodingABC):
     def _gen_mutation_noise(self, dim=None):
         # integer ~ Geo(p): supported on integers >= 1 i.e.
         # "shifted" geom. dist.
-        return get_rng().geometric(p=self._MUT_GEOM_P, size=1)
+        return get_rng().geometric(p=self._MUT_GEOM_P)
 
 
 class RealUnorderedBoundEncoding(UnorderedBoundEncodingABC):
