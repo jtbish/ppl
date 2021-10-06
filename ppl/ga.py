@@ -74,9 +74,10 @@ def _reassemble_child(alleles, encoding, alleles_per_rule, alleles_per_cond,
     rules = []
     cond_start_idxs = [(i * alleles_per_rule) for i in range(0, num_rules)]
     for cond_start_idx in cond_start_idxs:
-        cond_end_idx = (cond_start_idx + alleles_per_cond)
-        cond_alleles = alleles[cond_start_idx:cond_end_idx]
-        action = alleles[cond_end_idx]
+        cond_end_idx_excl = (cond_start_idx + alleles_per_cond)
+        cond_alleles = alleles[cond_start_idx:cond_end_idx_excl]
+        action_idx = cond_end_idx_excl
+        action = alleles[action_idx]
         cond = Condition(cond_alleles, encoding)
         rules.append(Rule(cond, action))
     assert len(rules) == num_rules
