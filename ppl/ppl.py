@@ -19,7 +19,8 @@ class PPL:
         self._env = env
         self._selectable_actions = self._env.action_space
         self._encoding = encoding
-        register_hyperparams(hyperparams_dict)
+        self._hyperparams_dict = hyperparams_dict
+        register_hyperparams(self._hyperparams_dict)
         seed_rng(get_hp("seed"))
         self._pop = None
 
