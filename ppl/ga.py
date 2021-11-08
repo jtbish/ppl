@@ -90,10 +90,10 @@ def mutate(indiv, encoding, selectable_actions):
     for rule in indiv.rules:
         cond_alleles = rule.condition.alleles
         mut_cond_alleles = encoding.mutate_condition_alleles(cond_alleles)
-        mut_cond = Condition(mut_cond_alleles, encoding)
-        mut_action = _mutate_action(rule.action, selectable_actions)
-        rule.condition = mut_cond
-        rule.action = mut_action
+        cond_alleles_changed = (mut_cond_alleles != cond_alleles)
+        if cond_alleles_changed:
+            rule.condition = Condition(mut_cond_alleles, encoding)
+        rule.action = _mutate_action(rule.action, selectable_actions)
 
 
 def _mutate_action(action, selectable_actions):
