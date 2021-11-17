@@ -52,15 +52,28 @@ class PPL:
         return self._pop
 
     def _assess_pop_perf(self, pop):
+        needs_assessment = [
+            indiv for indiv in pop if indiv.perf_assessment_res is None
+        ]
+        num_to_assess = len(needs_assessment)
+        pop_size = len(pop)
+        assess_ratio = num_to_assess / pop_size
+        logging.info(f"Perf assessment rate: {num_to_assess} / {pop_size} "
+                     f"= {assess_ratio:.4f}")
+
         # process parallelism for perf assessment
         num_rollouts = get_hp("num_rollouts")
         gamma = get_hp("gamma")
         with Pool(_NUM_CPUS) as pool:
             results = pool.starmap(self._assess_indiv_perf,
                                    [(indiv, num_rollouts, gamma)
-                                    for indiv in pop])
-        for (indiv, result) in zip(pop, results):
+                                    for indiv in needs_assessment])
+        for (indiv, result) in zip(needs_assessment, results):
             indiv.perf_assessment_res = result
+
+        # check that everyone in pop has perf assessment res
+        for indiv in pop:
+            assert indiv.perf_assessment_res is not None
 
     def _assess_indiv_perf(self, indiv, num_rollouts, gamma):
         return assess_perf(self._env, indiv, num_rollouts, gamma)

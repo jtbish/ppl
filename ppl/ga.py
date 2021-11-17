@@ -1,6 +1,6 @@
 from .condition import Condition
 from .hyperparams import get_hyperparam as get_hp
-from .indiv import Indiv
+from .indiv import make_indiv
 from .rng import get_rng
 from .rule import Rule
 
@@ -28,6 +28,26 @@ def crossover(parent_a, parent_b, encoding):
         return _uniform_crossover_on_alleles(parent_a, parent_b, encoding)
     else:
         return (parent_a, parent_b)
+
+
+def _uniform_crossover_on_rules(parent_a, parent_b):
+    """Uniform crossover with swapping acting on whole rules within indivs."""
+    num_rules = get_hp("indiv_size")
+
+    assert len(parent_a.rules) == num_rules
+    assert len(parent_b.rules) == num_rules
+    child_a_rules = parent_a.rules
+    child_b_rules = parent_b.rules
+
+    for idx in range(0, num_rules):
+        if get_rng().random() < get_hp("p_cross_swap"):
+            _swap(child_a_rules, child_b_rules, idx)
+    assert len(child_a_rules) == num_rules
+    assert len(child_b_rules) == num_rules
+
+    child_a = make_indiv(child_a_rules)
+    child_b = make_indiv(child_b_rules)
+    return (child_a, child_b)
 
 
 def _uniform_crossover_on_alleles(parent_a, parent_b, encoding):
@@ -81,19 +101,35 @@ def _reassemble_child(alleles, encoding, alleles_per_rule, alleles_per_cond,
         cond = Condition(cond_alleles, encoding)
         rules.append(Rule(cond, action))
     assert len(rules) == num_rules
-    return Indiv(rules)
+    return make_indiv(rules)
 
 
 def mutate(indiv, encoding, selectable_actions):
     """Mutates condition and action of rules contained within indiv by
-    resetting them in Rule object."""
+    resetting them in Rule object. Detects changes in genotype so as to mark
+    indiv for performance evaluation."""
+    genotype_changed = False
     for rule in indiv.rules:
+
         cond_alleles = rule.condition.alleles
         mut_cond_alleles = encoding.mutate_condition_alleles(cond_alleles)
         cond_alleles_changed = (mut_cond_alleles != cond_alleles)
+        # only remake condition if alleles have changed since otherwise destroy
+        # matching cache (in the case of IntegerCondition)
         if cond_alleles_changed:
             rule.condition = Condition(mut_cond_alleles, encoding)
-        rule.action = _mutate_action(rule.action, selectable_actions)
+
+        action = rule.action
+        mut_action = _mutate_action(action, selectable_actions)
+        action_changed = (mut_action != action)
+        if action_changed:
+            rule.action = mut_action
+
+        rule_changed = (cond_alleles_changed or action_changed)
+        genotype_changed = (genotype_changed or rule_changed)
+
+    if genotype_changed:
+        indiv.reinit()
 
 
 def _mutate_action(action, selectable_actions):
