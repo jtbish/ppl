@@ -44,10 +44,11 @@ class IndivABC(metaclass=abc.ABCMeta):
         Indiv object have changed without constructing new one."""
         raise NotImplementedError
 
+    @abc.abstractmethod
     def select_action(self, obs):
         """Performs inference on obs using rules to predict an action;
         i.e. making Indiv act as a policy."""
-        return infer_action(self, obs)
+        raise NotImplementedError
 
     def __len__(self):
         return len(self._rules)
@@ -56,6 +57,9 @@ class IndivABC(metaclass=abc.ABCMeta):
 class Indiv(IndivABC):
     def reinit(self):
         self._perf_assessment_res = None
+
+    def select_action(self, obs):
+        return infer_action(self, obs)
 
 
 class PolicyCacheIndiv(IndivABC):
