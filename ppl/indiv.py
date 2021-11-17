@@ -10,7 +10,7 @@ def make_indiv(rules):
     if use_policy_cache:
         return PolicyCacheIndiv(rules)
     else:
-        return VanillaIndiv(rules)
+        return Indiv(rules)
 
 
 class IndivABC(metaclass=abc.ABCMeta):
@@ -53,7 +53,7 @@ class IndivABC(metaclass=abc.ABCMeta):
         return len(self._rules)
 
 
-class VanillaIndiv(IndivABC):
+class Indiv(IndivABC):
     def reinit(self):
         self._perf_assessment_res = None
 
