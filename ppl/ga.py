@@ -114,8 +114,7 @@ def mutate(indiv, encoding, selectable_actions):
         cond_alleles = rule.condition.alleles
         mut_cond_alleles = encoding.mutate_condition_alleles(cond_alleles)
         cond_alleles_changed = (mut_cond_alleles != cond_alleles)
-        # only remake condition if alleles have changed since otherwise destroy
-        # matching cache (in the case of IntegerCondition)
+        # only remake condition if alleles have changed
         if cond_alleles_changed:
             rule.condition = Condition(mut_cond_alleles, encoding)
 
