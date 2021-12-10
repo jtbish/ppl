@@ -12,6 +12,7 @@ from .init import init_pop
 from .rng import seed_rng
 
 _NUM_CPUS = int(os.environ['SLURM_JOB_CPUS_PER_NODE'])
+_USE_PARALLEL = False
 
 
 class PPL:
@@ -30,7 +31,7 @@ class PPL:
 
     def init(self):
         self._pop = init_pop(self._encoding, self._selectable_actions)
-        self._assess_pop_perf(self._pop)
+        self._assess_pop_perf(self._pop, parallel=_USE_PARALLEL)
         return self._pop
 
     def run_gen(self):
@@ -47,11 +48,11 @@ class PPL:
                 new_pop.append(child)
 
         assert len(new_pop) == pop_size
-        self._assess_pop_perf(new_pop)
+        self._assess_pop_perf(new_pop, parallel=_USE_PARALLEL)
         self._pop = new_pop
         return self._pop
 
-    def _assess_pop_perf(self, pop):
+    def _assess_pop_perf(self, pop, parallel=True):
         needs_assessment = [
             indiv for indiv in pop if indiv.perf_assessment_res is None
         ]
@@ -61,15 +62,21 @@ class PPL:
         logging.info(f"Perf assessment rate: {num_to_assess} / {pop_size} "
                      f"= {assess_ratio:.4f}")
 
-        # process parallelism for perf assessment
         num_rollouts = get_hp("num_rollouts")
         gamma = get_hp("gamma")
-        with Pool(_NUM_CPUS) as pool:
-            results = pool.starmap(self._assess_indiv_perf,
-                                   [(indiv, num_rollouts, gamma)
-                                    for indiv in needs_assessment])
-        for (indiv, result) in zip(needs_assessment, results):
-            indiv.perf_assessment_res = result
+        if parallel:
+            # process parallelism for perf assessment
+            with Pool(_NUM_CPUS) as pool:
+                results = pool.starmap(self._assess_indiv_perf,
+                                       [(indiv, num_rollouts, gamma)
+                                        for indiv in needs_assessment])
+            for (indiv, result) in zip(needs_assessment, results):
+                indiv.perf_assessment_res = result
+        else:
+            # serial perf assessment for debugging / profiling
+            for indiv in needs_assessment:
+                result = self._assess_indiv_perf(indiv, num_rollouts, gamma)
+                indiv.perf_assessment_res = result
 
         # check that everyone in pop has perf assessment res
         for indiv in pop:
