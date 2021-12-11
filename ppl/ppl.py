@@ -12,7 +12,7 @@ from .init import init_pop
 from .rng import seed_rng
 
 _NUM_CPUS = int(os.environ['SLURM_JOB_CPUS_PER_NODE'])
-_USE_PARALLEL = False
+_USE_PARALLEL = True
 
 
 class PPL:
